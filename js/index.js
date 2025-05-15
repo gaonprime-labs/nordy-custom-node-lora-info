@@ -20,31 +20,20 @@ app.registerExtension({
         ).widget;
 
         const [loraNameWidget, baseModelWidget, outputWidget] = this.widgets;
-        let originalDescriptor = Object.getOwnPropertyDescriptor(loraNameWidget, 'value');
 
-        Object.defineProperty(loraNameWidget, 'value', {
-          get() {
-            const ret = originalDescriptor.get?.call(loraNameWidget) || originalDescriptor.value || '';
-            return ret
-          },
-          set(value) {
-            if (originalDescriptor.set) {
-              originalDescriptor.set.call(loraNameWidget, value);
-            } else {
-              originalDescriptor.value = value;
-            }
-            
-            const body = new FormData();
-            body.append('lora_name',value);
-            api
-              .fetchApi("/lora_info", { method: "POST", body, })
-              .then((response) => response.json())
-              .then((resp) => {
-                baseModelWidget.value = resp.baseModel;
-                outputWidget.value = resp.output;
-              })
-          }
-        });
+        loraNameWidget.callback = () => {
+          const value = loraNameWidget.value;
+
+          const body = new FormData();
+          body.append("lora_name", value);
+          api
+            .fetchApi("/lora_info", { method: "POST", body })
+            .then((response) => response.json())
+            .then((resp) => {
+              baseModelWidget.value = resp.baseModel;
+              outputWidget.value = resp.output;
+            });
+        };
       }
 
       const onExecuted = nodeType.prototype.onExecuted;
